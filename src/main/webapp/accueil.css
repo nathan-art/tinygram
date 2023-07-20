@@ -1,0 +1,206 @@
+@font-face {
+    font-family: 'insta-font';
+    src: url('instagram-font/Demo_Fonts/Fontspring-DEMO-blue_vinyl_regular_ps_ot.otf'), url('instagram-font/Demo_Fonts/Fontspring-DEMO-blue_vinyl_bold_ps_ot.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+#home{
+    height: 100%;
+    width: 100%;
+}
+
+/*#pagehome{
+    height: 100%;
+}*/
+
+.title {
+    background-color: blue;
+    text-align: center;
+    width: 20%;
+    font-size: 120%;
+    /*width: calc(100%/3);*/
+}
+
+.title p {
+    font-family: 'insta-font';
+    /*font-size: 100%;*/
+}
+
+.banner_icons {
+    background-color: white;
+    width: 95%;
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    font-family: 'insta-font';
+    font-size: 120%;
+    padding-left: 2%;
+    /*padding-top: 1%;*/
+    padding-right: 5%;
+    text-align: center;
+    border-bottom: 0.1rem solid ;
+    border-color: #ececec;
+}
+
+.banner_icons i {
+    padding-top: 1%;
+    color: black;
+    /*text-align: center;*/
+}
+
+.createpostbutton, .homebutton, .loginbutton, .likedposts {
+    margin-top: 2%;
+    margin-bottom: 2%;
+    background-color: white;
+    border: none;
+} 
+
+.modalcreatepostwindow {
+    height: 100%;
+    width: 100%;
+    background-color: blue;
+    z-index: 1;
+}
+
+.modalcreatepostblock {
+    position: fixed;
+    z-index: 1;
+    margin-left: 27.5%;
+    margin-top: 9%;
+    width: 45%; 
+    height: 78%;
+    background-color: white;
+    border-radius: 2%;
+}
+
+.bottomcreatepostblock {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    background-color: white; 
+    text-align: center;
+    width: calc(100%/3);
+}
+
+.postbutton {
+    background-color: red; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100%/3);
+}
+
+#srcImagefield {
+    margin-left: 39%;
+}
+
+.thread{
+    background-color: #fafafa;
+    width: 100%;
+    height: 80%;
+    padding-top: 10%;
+    padding-bottom: 6%;
+    /*overflow: scroll;*/
+    min-height: 500px;
+}
+
+.messagePage{
+    margin-left: 10%;
+}
+
+.post {
+    border: 0.1rem solid;
+    border-color: #ececec;
+    border-radius: 1%;
+    margin-left: 20%;
+    margin-right: 20%;
+    margin-bottom: 5%;
+    background-color: white;
+}
+
+.postbanner {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1%;
+    margin-left: 1%;
+    margin-bottom: 2%;
+}
+
+.userbanner {
+    /*border: solid;*/
+    height: 200%;
+    width: 20%;
+    margin-left: 1%;
+    margin-top: 1%;
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+    /*flex: wrap;*/
+}
+
+.userpicture {
+    height: 25%; /*rapport 5/3 entre la hauteur et la longueur de l'image*/
+    width: 15%;
+    border-radius: 50%;
+}
+
+.usertext {
+    margin-top: 4%;
+}
+
+.followbutton {
+    margin-right: 1%;
+    border: none;
+    background-color: white;
+    color: blue;
+}
+
+#createword {
+    height: 1%;
+    width: 100%;  
+    text-align: center; 
+}
+
+#postpicture {
+    height: 70%;
+    width: 100%;
+}
+
+.postpicture {
+    height: 80%;
+    width: 100%;
+}
+
+#legendfield {
+    margin-top: 0%;
+}
+
+.description {
+    margin-top: 2%;
+    margin-bottom: 2%;
+    margin-left: 1%;
+}
+
+.likebutton button{
+    margin-left: 1%;
+    margin-bottom: 1%;
+    margin-top: 2%;
+    background-color: white;
+    border: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.g_id_signin {
+    margin-top: 2%;
+}

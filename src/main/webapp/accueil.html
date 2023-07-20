@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<head>
+    <title>Tinygram</title>
+
+    <link href="accueil.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    <script src="https://unpkg.com/jwt-decode/build/jwt-decode.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <script>
+    var root = document.body 
+
+    var textButton = "suivre";
+
+    var classHeart = "fa fa-heart-o";
+
+    var showModal = false;
+
+    var userTest = ""
+
+    var sourceImgTest = ""
+
+    var legendTest = ""
+
+    var postArray = [];
+    //postArray = NewPosts.loadList();
+
+    var likedView = false;
+
+    var messageErreur = "";
+
+    var messagePage = "page d'accueil";
+
+
+
+    var Login = {
+        user:null,
+        is_connected:false,
+        name:"",
+        email:"",
+        ID:"",
+        picture:"",
+        handleCredential: function(response) {
+            console.log("callback called:"+response.credential)
+            const responsePayload = jwt_decode(response.credential)
+
+            console.log("ID: " + responsePayload.sub)
+            console.log('Full Name: ' + responsePayload.name)
+            console.log('Given Name: ' + responsePayload.given_name)
+            console.log('Family Name: ' + responsePayload.family_name)
+            console.log("Image URL: " + responsePayload.picture)
+            console.log("Email: " + responsePayload.email)
+            console.log(responsePayload.name + " is connected")
+
+            Login.name = responsePayload.name.replace(" ","_")
+            Login.email = responsePayload.email
+            Login.ID = response.credential
+            Login.picture = responsePayload.picture
+            Login.is_connected = true
+            //document.getElementsByClassName("thread").style.overflow = "scroll";
+            
+            m.redraw()
+            
+        }
+    }
+
+    function handleCredentialResponse(response) {
+        console.log("callback called:"+response.credential)
+        const url = "_ah/api/myApi/v1/Hello"+'?access_token=' + response.credential
+        fetch(url).then(response => response.text()).then(data => Login.user = data)
+        Login.handleCredential(response)
+    }
+
+    //composant représentant la fenêtre modale de création de post tinygram
+    var ModalCreatePost = {
+        postID:"",
+        url:"",
+		body:"",
+        view: function(vnode) {
+            return m("div", {class: "modalcreatepostwindow"}, 
+                m("div", {class: "modalcreatepostblock"}, [ 
+                m("button", {onclick: function() {showModal = false;document.getElementById("home").style.position = "relative";document.getElementById("home").style.opacity=1;messageErreur = "";}}, [m("i", {class: "fa fa-remove"})]),
+                m("p",{id:"createword"}, "Créer une nouvelle publication"),
+                m("input", {id:"srcImagefield",type:"text",placeholder:"écrivez ici l'url de l'image que vous voulez utiliser", oninput: function(){document.getElementById("postpicture").src = this.value;}}),
+                m("img", {id:"postpicture",src:""}),
+                m("div",{class:"bottomcreatepostblock"}, [
+                m("input", {id:"legendfield",type:"text",placeholder:"écrivez ici la légende de votre photo"}),
+                m("input", {id:"createpost",type:"submit",onclick: function(){
+                    console.log("document.getElementById(postpicture).src = "+document.getElementById("postpicture").src);
+                    console.log("window.location.href (url de la page courante) : "+window.location.href);
+                    if(!(document.getElementById("postpicture").src.includes(".jpg")) && !(document.getElementById("postpicture").src.includes(".png")) && !(document.getElementById("postpicture").src.includes(".jpeg"))){
+                        messageErreur = "Veuillez séléctionner une url valide pour l'image pour publier le post";
+                    }
+                    else{ 
+                        ModalCreatePost.url = document.getElementById("postpicture").src 
+		                ModalCreatePost.body = document.getElementById("legendfield").value
+                        ModalCreatePost.postMessage()
+                        /*if (ModalCreatePost.postMessage()) {
+                            postArray.push(m(PersonalizedPost, {id:vnode.state.postID, user: Login.name, sourceImg: document.getElementById("postpicture").src, legend:document.getElementById("legendfield").value, cptlike:0}));
+                            showModal = false
+                            console.log(postArray)
+                        }*/
+                        document.getElementById("home").style.position = "relative"
+                        document.getElementById("home").style.opacity=1
+                    }
+                }}, "publier"),
+                ]
+                ),
+                
+                m("p", messageErreur)
+            ])
+            )
+        },
+        postMessage: function() {
+            return m.request({
+         		method: "POST",
+         		url: "_ah/api/myApi/v1/postMsg/"+Login.email+"?access_token="+Login.ID,
+                params: {'owner':Login.name,
+                        //'url':"url",
+                        /*'url': sourceImgTest,*/
+                        'url':ModalCreatePost.url,
+                        'body':ModalCreatePost.body}
+         	})
+            .then(function(result) {
+                console.log("got:",result)
+                ModalCreatePost.postID = result.key.name
+                postArray.push(m(PersonalizedPost, {id:ModalCreatePost.postID, user: Login.name, sourceImg: document.getElementById("postpicture").src, legend:document.getElementById("legendfield").value, cptlike:0}));
+                showModal = false
+                console.log(postArray)
+            })
+        }
+    }
+
+    //composant représentant un post personalisable
+    var PersonalizedPost = {
+        heartTest: "fa fa-heart-o",
+        textButtonTest: "suivre",
+        nbAbonnes: 0,
+        nbLikes: 0,
+        view: function(vnode) {
+            
+            return m("div",{class: "post"},
+                [
+                m("div",{class:"postbanner"} ,[m("div", {class:"userbanner"}, [m("img", {class: "userpicture",src:"homer.png"}),
+                m("div", {class:"usertext"},vnode.attrs.user)]),
+                m("div", {class:"nbabonnes"}, vnode.state.nbAbonnes+" abonnés "),
+                /*m("div", {class: "followbutton"},*/ m("button", {
+                    class: "followbutton",
+                    onclick: function(){
+                        if(Login.is_connected)
+                        {   if(vnode.state.textButtonTest == "suivre"){
+                                vnode.state.textButtonTest = "suivi !";
+                                vnode.state.nbAbonnes=vnode.state.nbAbonnes+1;
+                                console.log("l'user a cliqué sur suivre "+vnode.state.textButtonTest);
+                                PersonalizedPost.follow(vnode.attrs.id);
+                            } 
+                            else {
+                                vnode.state.textButtonTest = "suivre";
+                                vnode.state.nbAbonnes=vnode.state.nbAbonnes-1;
+                                console.log("l'user a cliqué sur suivi "+vnode.state.textButtonTest);
+                            }
+                        }
+                    }, type:"button"}, vnode.state.textButtonTest),
+            //)
+        ]),
+                m("img", {class: "postpicture",src:vnode.attrs.sourceImg}),
+                m("div", {class: "likebutton"}, m("button", {onclick: function(){
+                    if(vnode.state.heartTest == "fa fa-heart-o"){
+                        // vnode.state.heartTest = "fa fa-heart";
+                        // vnode.state.nbLikes=1;
+                        console.log("ID POST: "+vnode.attrs.id)
+                        console.log("Login.email: "+Login.email)
+                        PersonalizedPost.likePost(vnode.attrs.id, vnode)
+                        console.log("l'user a cliqué sur le coeur blanc "+vnode.state.heartTest);}
+                    else {
+                        //vnode.state.heartTest = "fa fa-heart-o";
+                        console.log("l'user a cliqué sur le coeur noir "+vnode.state.heartTest);}
+                } ,class:vnode.state.heartTest})),
+            //m("div", {class:"nbjaime"}, vnode.state.nbLikes+" personnes ont aimé ce post"),
+            m("div", {class:"cptlike"}, Number(vnode.attrs.cptlike)+Number(vnode.state.nbLikes)+" likes"),
+            m("div", {class: "description"},vnode.attrs.legend),
+                
+                ])
+        },
+        likePost: function(postID, vnode){
+            return m.request({
+         		method: "POST",
+         		url: "_ah/api/myApi/v1/like/"+Login.email+"/"+postID+"?access_token="+Login.ID,
+         	})
+            .then(function(result) {
+                console.log("got:",result);
+                if (result.error == undefined) {
+                    vnode.state.heartTest = "fa fa-heart";
+                    vnode.state.nbLikes=1;
+                }
+            });
+        },
+        follow: function(postID) {
+            return m.request({
+                method: "POST",
+                url: "_ah/api/myApi/v1/follow/"+Login.email+"/"+postID+"?access_token="+Login.ID
+            })
+        }
+    }
+
+    var NewPosts = {
+	    nextToken: "",
+        next: function() {
+	        return m.request({
+	            method: "GET",
+	            url: "_ah/api/myApi/v1/retrievePosts?email="+Login.email+"&next="+NewPosts.nextToken})
+	        .then(function(result) {
+	        	console.log("got new posts 2:",result)
+                console.log(result.items)
+	        	result.items.map(function(item){
+                    postArray.push(
+                        m(PersonalizedPost, {
+                            id: item.key.name, 
+                            user: item.properties.ownerName, 
+                            sourceImg: item.properties.url, 
+                            legend: item.properties.body, 
+                            cptlike: item.properties.cptlike
+                        })
+                    )
+                })
+	            if ('nextPageToken' in result) {
+		        	NewPosts.nextToken = result.nextPageToken
+	            } else {
+	            	NewPosts.nextToken = ""
+	            }
+            })
+	    }
+    }
+    
+    var postView = {
+        view: function(){
+            return postArray.map(function(item){
+                return m(PersonalizedPost, {id:item.attrs.id, user: item.attrs.user, sourceImg: item.attrs.sourceImg, legend:item.attrs.legend, cptlike:item.attrs.cptlike});
+            })
+        }    
+    }
+
+    //c'est ici qu'est écrit le code qui s'affichera à l'écran de l'utilisateur
+    m.mount(root, {
+    oninit: NewPosts.next(),
+    view: function() {
+        //NewPosts.next();
+        return m("div" , {id: "pagehome"},
+        [m("div",{id: "home"},
+            [m("header",{class:"banner"} ,[
+                m("div", {class: "banner_icons"},[
+                    m("p", "TinyGram"),
+                    m("a",{class: "homebutton",href:"#home" /*ce href permet de revenir en haut de la page lorsque l'utilisateur clique sur la maison*/},[m("i", {class:"fa fa-home fa-2x"})]),
+                    m("button",{class: "createpostbutton", onclick: function(){
+                        //console.log("Login.is_connected ",Login.is_connected);
+                        if(Login.is_connected)
+                            {showModal = true;
+                            console.log("Login.is_connected ",Login.is_connected);
+                            console.log("showModal = "+showModal);
+                            var home = document.getElementById("home");
+                            home.style.position = "fixed";/*lorsque la fenêtre modale est ouverte, l'arrière plan est immobile*/
+                            home.style.backgroundColor = "black";
+                            home.style.opacity = 0.5}
+                    }},[m("i",{class:"fa fa-plus-square-o fa-2x"})]),
+                    m("button", {class: "likedposts", onclick: function() {
+                        if(Login.is_connected)
+                        {likedView = !likedView;
+                        if (likedView) {
+                            messagePage = "posts aimés par "+Login.name;
+                            console.log("Liked Posts");
+                            return m.request({
+                                method: "GET",
+                                url: "_ah/api/myApi/v1/likedPosts/"+Login.email+"?access_token="+Login.ID
+                            })
+                            .then(function(result) {
+                                console.log("got:", result);
+                                postArray = [];
+                                result.items.map(function(item) {
+                                    postArray.push(
+                                        m(PersonalizedPost, {
+                                            id: item.key.name,
+                                            user: item.properties.ownerName,
+                                            sourceImg: item.properties.url,
+                                            legend: item.properties.body,
+                                            cptlike: item.properties.cptlike
+                                        })
+                                    );
+                                });
+                                if ("nextPageToken" in result) {
+                                    NewPosts.nextToken = result.nextPageToken;
+                                } else {
+                                    NewPosts.nextToken = "";
+                                }
+                            });
+                        } else {
+                            console.log("Normal Posts");
+                            postArray = [];
+                            NewPosts.nextToken = "";
+                            NewPosts.next();
+                        }}
+                    }}, [m("i", {class: "fa fa-heart"})]),
+                    m('div',{class:"g_id_signin", "data-type":"standard"}),
+                    m('div',{id:"g_id_onload", "data-callback":"handleCredentialResponse", "data-client_id":"104863768889-7inl2v16fqvpb42q4jl9lqd8iv38533c.apps.googleusercontent.com"}),
+                    m("img",{"src":Login.picture}),
+                ]),
+            ]      
+            ),
+            m("div",{class:"thread"},[
+                m("div",{class:"messagePage"},[m("p", messagePage)]),
+                m(postView),
+                m('button',{
+                class: 'button is-link',
+                onclick: function(e) {NewPosts.next()}
+                }, "Next"),
+            ]),
+           
+        ]),showModal && m(ModalCreatePost)
+    ])
+        }
+    }
+    )
+
+    </script>
+</body>
+</html>
